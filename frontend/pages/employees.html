@@ -1,0 +1,217 @@
+<div class="container mt-3">
+  <div>
+    <table class="table table-striped" id="employee-performance">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Employee full name</th>
+          <th>Employee email</th>
+          <th>Total payments (BAM)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-center">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-warning edit-button" data-id="1" data-first-name="Becir" data-last-name="Isakovic" data-email="becir.isakovic@ibu.edu.ba">Edit</button>
+              <button type="button" class="btn btn-danger delete-button" data-id="1">Delete</button>
+            </div>            
+          </td>
+          <td>Becir Isakovic</td>
+          <td>becir.isakovic@ibu.edu.ba</td>
+          <td>100.000</td>
+        </tr>
+        <tr>
+          <td class="text-center">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-warning edit-button" data-id="2" data-first-name="Dzelila" data-last-name="Mehanovic" data-email="dzelila.mehanovic@ibu.edu.ba">Edit</button>
+              <button type="button" class="btn btn-danger delete-button" data-id="2">Delete</button>
+            </div>
+          </td>
+          <td>Dzelila Mehanovic</td>
+          <td>dzelila.mehanovic@ibu.edu.ba</td>
+          <td>120.000</td>
+        </tr>
+        <tr>
+          <td class="text-center">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-warning edit-button" data-id="3" data-first-name="Amela" data-last-name="Vatres" data-email="amela.vatres@ibu.edu.ba">Edit</button>
+              <button type="button" class="btn btn-danger delete-button" data-id="3">Delete</button>
+            </div>
+          </td>
+          <td>Amela Vatres</td>
+          <td>amela.vatres@ibu.edu.ba</td>
+          <td>150.000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="edit-employee-modal"
+  tabindex="-1"
+  aria-labelledby="edit-employee-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="#">
+        <div class="modal-header">
+          <h5 class="modal-title" id="add-employee-label">Edit employee</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="customer_id" name="customer_id" />
+          <div class="mb-3 mt-3">
+            <label for="first_name">First name:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="first_name"
+              placeholder="Enter first name"
+              name="first_name"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="pwd">Last name:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="last_name"
+              placeholder="Enter last name"
+              name="last_name"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="birth_date">Email:</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="Enter email"
+              name="email"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  /* 
+    1. Populate the table with id `employee-performance` with the data returned
+       from the database. It does not have to be paginated. (5 points)
+    2. Implement the delete logic in the predefined function. (10 points)
+    3. When Edit button is clicked
+      a. fetch the employee with clicked id from database (backend) (6 points)
+      b. populate the modal (id `edit-employee-modal`) form with data returned from the backend (6 points)
+      d. when user clicks "Save changes" button in the modal persist changes
+         for that employee in the database (6 points)
+   */
+$(document).ready(function() {
+  function fetchEmployeeData() {
+      $.ajax({
+          url: '../backend/rest/employees/performance',
+          type: 'GET',
+          dataType: 'json',
+          success: function(data) {
+              var tableBody = $('#employee-performance tbody');
+              tableBody.empty();
+
+
+              data.forEach(function(employee) {
+                  var row = $('<tr></tr>');
+                  row.append('<td class="text-center">' +
+                      '<div class="btn-group" role="group">' +
+                      '<button type="button" class="btn btn-warning edit-button" data-id="' + employee.id + '" data-first-name="' + employee.first_name + '" data-last-name="' + employee.last_name + '" data-email="' + employee.email + '">Edit</button>' +
+                      '<button type="button" class="btn btn-danger delete-button" data-id="' + employee.id + '">Delete</button>' +
+                      '</div></td>');
+                  row.append('<td>' + employee.full_name + '</td>');
+                  row.append('<td>' + employee.email + '</td>');
+                  row.append('<td>' + employee.total + '</td>');
+                  tableBody.append(row);
+              });
+          },
+          error: function(error) {
+              console.error("Error fetching data: ", error);
+          }
+      });
+  }
+
+
+  fetchEmployeeData();
+
+
+  $('#employee-performance').on('click', '.delete-button', function() {
+      var employeeId = $(this).data('id');
+      EmployeesService.delete_employee(employeeId);
+  });
+
+
+  $('#employee-performance').on('click', '.edit-button', function() {
+      var employeeId = $(this).data('id');
+      var firstName = $(this).data('first-name');
+      var lastName = $(this).data('last-name');
+      var email = $(this).data('email');
+
+
+      EmployeesService.edit_employee(employeeId, firstName, lastName, email);
+  });
+
+
+  $('#edit-employee-modal form').on('submit', function(e) {
+      e.preventDefault();
+
+
+      var employeeId = $('#customer_id').val();
+      var updatedData = {
+          first_name: $('#first_name').val(),
+          last_name: $('#last_name').val(),
+          email: $('#email').val()
+      };
+
+
+      console.log("Attempting to update employee with id: ", employeeId);
+
+
+      $.ajax({
+          url: '../backend/rest/employee/edit/' + employeeId,
+          type: 'PUT',
+          contentType: 'application/json',
+          data: JSON.stringify(updatedData),
+          success: function(result) {
+              alert('Employee updated successfully');
+              $('#edit-employee-modal').modal('hide');
+
+
+              fetchEmployeeData();
+          },
+          error: function(xhr) {
+              alert('Failed to update employee: ' + xhr.responseText);
+          }
+      });
+  });
+});
+</script>
+
